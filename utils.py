@@ -1,5 +1,5 @@
 # Some utilities have their own files, include them here
-from .fftwshow import fftshow
+from .fftshow import fftshow
 from .zerocross import zerocross
 from .homomorphic_filter import homomorphic_filter
 
