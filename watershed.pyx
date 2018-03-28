@@ -12,7 +12,6 @@ cdef list create_queue(double[:,::1] im, int[:,::1] lbls, double height):
     cdef list queue = []
     for i in range(1, im.shape[0]-1):
         for j in range(1, im.shape[1]-1):
-        for j in range(1, im.shape[1]-1):
             if im[i,j] != height: continue
             # If a neighbor is in a watershed or labeled add it to pixel to the queue instead
             if lbls[i, j-1] >= WSHED or lbls[i, j+1] >= WSHED or lbls[i-1, j] >= WSHED or lbls[i+1, j] >= WSHED:
