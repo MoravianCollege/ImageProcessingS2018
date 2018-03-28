@@ -1,13 +1,13 @@
-cdef int INIT = -1 # initial value of output pixels
-cdef int MASK = -2 # initial value of a threshold level
-cdef int INQUEUE = -3 # value assigned to pixels put into the queue
-cdef int WSHED = 0 # value of pixels belonging to watersheds
+cdef long INIT = -1 # initial value of output pixels
+cdef long MASK = -2 # initial value of a threshold level
+cdef long INQUEUE = -3 # value assigned to pixels put into the queue
+cdef long WSHED = 0 # value of pixels belonging to watersheds
 
 cimport cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef list create_queue(double[:,::1] im, int[:,::1] lbls, double height):
+cdef list create_queue(double[:,::1] im, long[:,::1] lbls, double height):
     cdef Py_ssize_t i, j, ni, nj
     cdef list queue = []
     for i in range(1, im.shape[0]-1):
@@ -22,8 +22,8 @@ cdef list create_queue(double[:,::1] im, int[:,::1] lbls, double height):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef int process_queue_point_neighbor(list queue, int[:,::1] lbls, Py_ssize_t ni, Py_ssize_t nj, int lbl, bint* flag):
-    cdef int n_lbl = lbls[ni, nj]
+cdef long process_queue_point_neighbor(list queue, long[:,::1] lbls, Py_ssize_t ni, Py_ssize_t nj, long lbl, bint* flag):
+    cdef long n_lbl = lbls[ni, nj]
     if n_lbl > 0: # the pixel belongs to an already labeled basin
         if lbl == INQUEUE or lbl == WSHED and flag[0]:
             return n_lbl
@@ -40,9 +40,9 @@ cdef int process_queue_point_neighbor(list queue, int[:,::1] lbls, Py_ssize_t ni
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef process_queue(list queue, int[:,::1] lbls):
+cdef process_queue(list queue, long[:,::1] lbls):
     cdef Py_ssize_t i, j, ni, nj
-    cdef int lbl
+    cdef long lbl
     cdef bint flag = False
     while queue:
         i,j = queue.pop(0)
@@ -56,7 +56,7 @@ cdef process_queue(list queue, int[:,::1] lbls):
         
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef int update_labels(int[:,::1] lbls, int nlbls):
+cdef long update_labels(long[:,::1] lbls, long nlbls):
     cdef Py_ssize_t i, j, pi, pj, ni, nj
     cdef list stack
     for i in range(1, lbls.shape[0]-1):
@@ -81,15 +81,15 @@ def watershed(im, hMin=0.0, hMax=1.0):
     tentative. International Society for Optics and Photonics, 1990.
     NOTE: this algorithm may have plateaus in the dams.
     """
-    from numpy import pad, ones, unique
+    from numpy import pad, ones, unique, long as np_long
     from skimage import img_as_float
 
     # We want at most 1024 distinct values or this is going to take forever
     im = (img_as_float(im) * 1024).round() / 1024
     
     cdef double[:,::1] im_ = pad(im, 1, 'constant', constant_values=-1) # pad the image to make things easier
-    cdef int[:,::1] lbls = INIT*ones((im_.shape[0], im_.shape[1]), int)
-    cdef int nlbls = 0
+    cdef long[:,::1] lbls = INIT*ones((im_.shape[0], im_.shape[1]), np_long)
+    cdef long nlbls = 0
 
     # Get all heights, excluding heights above and below the min/max
     heights = unique(im)
